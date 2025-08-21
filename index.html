@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimbus</title>
+<style>
+/* ===== Reset ===== */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI",sans-serif;background:#1a1d21;color:#e5e9f0;display:flex;}
+
+/* ===== Sidebar ===== */
+.sidebar{
+  width:250px;background:#202329;border-right:1px solid #2f3339;
+  padding:20px;height:100vh;overflow-y:auto;
+}
+.sidebar h3{color:#3a8dff;margin-bottom:8px;}
+.sidebar ul{list-style:none;margin-top:6px;}
+.sidebar li{padding:8px 10px;border-radius:8px;margin-bottom:6px;cursor:pointer;transition:0.2s;display:flex;align-items:center;gap:10px;}
+.sidebar li:hover{background:#3a8dff33;}
+.sidebar input{
+  width:100%;padding:8px;border-radius:6px;border:1px solid #3a8dff;
+  margin-bottom:10px;background:#1a1d21;color:white;
+}
+.sidebar .btn{width:100%;margin-bottom:15px;}
+.sidebar .btn-group{display:flex;gap:5px;margin-bottom:15px;}
+.sidebar .btn-group .btn{flex:1;margin:0;}
+.sidebar li img{width:28px;height:28px;border-radius:50%;}
+
+/* ===== Main ===== */
+.main{flex:1;display:flex;flex-direction:column;}
+
+/* ===== Header ===== */
+header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 20px;background:#202329;border-bottom:1px solid #2f3339;
+  position:sticky;top:0;z-index:100;
+}
+header h1{font-size:22px;font-weight:bold;color:#3a8dff;cursor:pointer;}
+.user-area{display:flex;align-items:center;gap:12px;}
+.profile-link{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.profile-link img{width:42px;height:42px;border-radius:50%;border:2px solid #3a8dff;}
+
+/* ===== Buttons ===== */
+.btn{
+  background:#3a8dff;color:white;border:none;padding:8px 16px;
+  border-radius:999px;font-weight:600;cursor:pointer;transition:0.25s;
+}
+.btn:hover{background:#2973d9;transform:translateY(-1px);}
+
+/* ===== Content Area ===== */
+.content-area{flex:1;display:flex;}
+.feed-container, .profile-container{
+  flex:1;padding:20px;max-width:650px;margin:auto;
+}
+
+/* ===== Feed ===== */
+.new-post{
+  background:#25292f;border-radius:12px;padding:14px;margin-bottom:20px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.4);
+}
+.new-post textarea{
+  width:100%;background:#1a1d21;border:1px solid #3a8dff;border-radius:8px;
+  color:white;padding:10px;font-size:14px;resize:none;margin-bottom:12px;
+}
+.new-post .post-buttons{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.new-post .post-buttons button{
+  padding:8px 12px;
+  border-radius:8px;
+  border:none;
+}
+.post{
+  background:#25292f;border-radius:12px;margin-bottom:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);transition:0.2s;
+}
+.post:hover{transform:translateY(-3px);}
+.post-header{display:flex;align-items:center;padding:12px;font-size:14px;color:#aaa;}
+.post-header img{width:34px;height:34px;border-radius:50%;margin-right:10px;}
+.post-content p{padding:12px;font-size:15px;color:#e5e9f0;line-height:1.5;}
+.post-content img{max-width:100%;height:auto;border-radius:8px;display:block;margin:10px auto;}
+.post-actions{
+  display:flex;justify-content:space-around;padding:10px;
+  border-top:1px solid #333;
+}
+.post-actions button{
+  background:none;border:none;cursor:pointer;font-size:15px;
+  display:flex;align-items:center;gap:6px;color:#a9b3c1;transition:0.25s;
+}
+.post-actions button:hover{color:#3a8dff;transform:scale(1.1);}
+.post-actions button.liked{color:#3a8dff;}
+.post-comments{padding:10px;border-top:1px solid #333;margin-top:10px;}
+.post-comments h4{color:#a9b3c1;font-size:14px;margin-bottom:8px;}
+.comment{padding:8px;border-bottom:1px solid #333;font-size:14px;color:#e5e9f0;}
+.comment b{color:#3a8dff;margin-right:8px;}
+.comment-input-area{display:flex;gap:10px;margin-top:10px;}
+.comment-input{flex:1;background:#1a1d21;border:1px solid #3a8dff;border-radius:8px;color:white;padding:8px;font-size:14px;}
+.comment-button{background:#3a8dff;color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:14px;}
+
+/* ===== Chat ===== */
+.chat-container{
+  width:350px;background:#202329;border-left:1px solid #2f3339;
+  display:flex;flex-direction:column;
+  display:none;
+}
+.chat-header{
+  background:#25292f;padding:15px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid #2f3339;position:relative;
+}
+.chat-header h3{margin:0;color:#3a8dff;}
+.chat-messages{
+  flex:1;padding:15px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+}
+.chat-message{
+  padding:10px;border-radius:10px;max-width:85%;
+  word-wrap:break-word;
+}
+.chat-message.me{
+  background:#3a8dff;color:white;align-self:flex-end;
+  border-bottom-right-radius:2px;
+}
+.chat-message.other{
+  background:#444;color:white;align-self:flex-start;
+  border-bottom-left-radius:2px;
+}
+.chat-input{
+  display:flex;padding:10px;border-top:1px solid #2f3339;
+}
+.chat-input input{
+  flex:1;padding:10px;border-radius:999px;border:none;
+  background:#2a2d32;color:white;
+}
+.chat-input button{
+  background:#3a8dff;border:none;border-radius:50%;width:40px;height:40px;
+  margin-left:8px;cursor:pointer;color:white;font-size:18px;}
+.chat-close-btn{
+  position:absolute;top:10px;right:10px;background:none;border:none;
+  color:#aaa;font-size:24px;cursor:pointer;transition:0.2s;
+}
+.chat-close-btn:hover{color:red;transform:rotate(90deg);}
+
+.modal{
+  display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;
+  overflow:auto;background:rgba(0,0,0,0.8);
+  justify-content:center;align-items:center;
+}
+.modal-content{
+  background:#202329;padding:25px;border-radius:10px;width:350px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.5);
+  display:flex;flex-direction:column;gap:15px;
+}
+.modal-content h3{text-align:center;color:#3a8dff;}
+.modal-content input{
+  width:100%;padding:10px;border-radius:6px;border:1px solid #3a8dff;
+  background:#1a1d21;color:white;
+}
+.modal-content .btn-container{
+  display:flex;justify-content:space-around;
+}
+.modal-content .btn-container button{width:45%;}
+
+.profile-container{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  gap:20px;
+  background:#25292f;
+  padding:30px;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
+.profile-container h2{color:#3a8dff;margin-bottom:10px;}
+.profile-container img{width:150px;height:150px;border-radius:50%;border:4px solid #3a8dff;margin-bottom:10px;}
+.profile-container label{color:#a9b3c1;font-size:14px;margin-bottom:5px;}
+.profile-container input{width:100%;}
+
+/* Estilos para el modal de GIFs */
+#gifModal .modal-content {
+  width: 90%;
+  max-width: 600px;
+  height: 90vh;
+  padding: 10px;
+}
+
+#gifModal #gifSearchInput {
+  margin-bottom: 10px;
+  width: calc(100% - 20px);
+}
+
+#gifModal #gifResults {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 5px;
+  overflow-y: auto;
+  flex-grow: 1;
+  padding: 5px;
+}
+
+#gifModal #gifResults img {
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: transform 0.2s;
+}
+#gifModal #gifResults img:hover {
+  transform: scale(1.05);
+}
+
+#gifModal .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #e5e9f0;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h3>Amigos</h3>
+  <input type="text" id="searchFriend" placeholder="Buscar amigo">
+  <button id="addFriendBtn" class="btn">Añadir amigo</button>
+  <ul id="friendsList"></ul>
+
+  <h3>Grupos</h3>
+  <input type="text" id="searchGroup" placeholder="Buscar grupo">
+  <div class="btn-group">
+    <button id="createGroupBtn" class="btn">Crear</button>
+    <button id="joinGroupBtn" class="btn">Unirse</button>
+  </div>
+  <ul id="groupsList"></ul>
+</div>
+
+<div id="createGroupModal" class="modal">
+  <div class="modal-content">
+    <h3>Crear Nuevo Grupo</h3>
+    <input type="text" id="newGroupName" placeholder="Nombre del grupo">
+    <div class="btn-container">
+      <button id="modalCreateBtn" class="btn">Crear</button>
+      <button id="modalCancelBtn" class="btn">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="gifModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" id="closeGifModal">&times;</span>
+    <h3>Buscar GIF</h3>
+    <input type="text" id="gifSearchInput" placeholder="Busca un GIF...">
+    <div id="gifResults"></div>
+  </div>
+</div>
+
+<div class="main">
+<header>
+  <h1 id="homeBtn">Nimbus</h1>
+  <div class="user-area" id="userArea">
+    <button class="btn" id="loginBtn">Iniciar sesión</button>
+  </div>
+</header>
+
+<div class="content-area">
+  <div class="feed-container" id="feedContainer">
+    <div class="new-post" id="newPostBox" style="display:none;">
+      <textarea id="postText" rows="3" placeholder="¿Qué estás pensando? (máx 280 caracteres)"></textarea>
+      <div class="post-buttons">
+        <button class="btn" id="gifPostBtn">GIF</button>
+        <button class="btn" id="postBtn">Publicar</button>
+      </div>
+    </div>
+    <div id="feed"></div>
+  </div>
+
+  <div class="profile-container" id="profileContainer">
+    <h2>Mi Perfil</h2>
+    <img id="profileImage" src="">
+    <label for="displayNameInput">Nombre de usuario</label>
+    <input type="text" id="displayNameInput">
+    <label for="photoInput">Cambiar foto de perfil</label>
+    <input type="file" id="photoInput" accept="image/*">
+    <button id="saveProfileBtn" class="btn">Guardar</button>
+  </div>
+
+  <div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+      <img id="chatHeaderImg" src="">
+      <div>
+        <h3 id="chatHeaderName"></h3>
+      </div>
+      <button class="chat-close-btn" id="closeChatBtn">&times;</button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <button class="btn" id="gifChatBtn">GIF</button>
+      <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
+      <button id="sendMessageBtn">▶</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, arrayUnion, setDoc, getDoc, getDocs, arrayRemove, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAuJNMD4d0a2uehA4UCEx7WNRlkjzWG8X8",
+  authDomain: "mini4chan-50c4d.firebaseapp.com",
+  projectId: "mini4chan-50c4d",
+  storageBucket: "mini4chan-50c4d.appspot.com",
+  messagingSenderId: "476495367772",
+  appId: "1:476495367772:web:3ce2ab7266bfd047eba099",
+  measurementId: "G-VSC6XWFGE7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// ¡CLAVE DE API DE GIPHY ACTUALIZADA!
+const GIPHY_API_KEY = "yOwJacRRm2LB0ullhD1fbL7ltxVBHFJl";
+
+let currentUser = null;
+let currentChatId = null;
+let currentChatType = null;
+let unsubscribeFromChat = null;
+
+const userArea = document.getElementById("userArea");
+const homeBtn = document.getElementById("homeBtn");
+const feedContainer = document.getElementById("feedContainer");
+const newPostBox = document.getElementById("newPostBox");
+const postBtn = document.getElementById("postBtn");
+const postText = document.getElementById("postText");
+const feed = document.getElementById("feed");
+// Nuevos elementos para GIF en publicaciones
+const gifPostBtn = document.getElementById("gifPostBtn");
+const gifModal = document.getElementById("gifModal");
+const closeGifModal = document.getElementById("closeGifModal");
+const gifSearchInput = document.getElementById("gifSearchInput");
+const gifResults = document.getElementById("gifResults");
+
+const profileContainer = document.getElementById("profileContainer");
+const profileImage = document.getElementById("profileImage");
+const displayNameInput = document.getElementById("displayNameInput");
+const photoInput = document.getElementById("photoInput");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
+
+const searchFriend = document.getElementById("searchFriend");
+const addFriendBtn = document.getElementById("addFriendBtn");
+const friendsList = document.getElementById("friendsList");
+
+const searchGroup = document.getElementById("searchGroup");
+const createGroupBtn = document.getElementById("createGroupBtn");
+const joinGroupBtn = document.getElementById("joinGroupBtn");
+const groupsList = document.getElementById("groupsList");
+
+const chatContainer = document.getElementById("chatContainer");
+const chatHeaderName = document.getElementById("chatHeaderName");
+const chatHeaderImg = document.getElementById("chatHeaderImg");
+const chatMessages = document.getElementById("chatMessages");
+const messageInput = document.getElementById("messageInput");
+const sendMessageBtn = document.getElementById("sendMessageBtn");
+const closeChatBtn = document.getElementById("closeChatBtn");
+// Nuevo elemento para GIF en chat
+const gifChatBtn = document.getElementById("gifChatBtn");
+
+
+const createGroupModal = document.getElementById("createGroupModal");
+const newGroupName = document.getElementById("newGroupName");
+const modalCreateBtn = document.getElementById("modalCreateBtn");
+const modalCancelBtn = document.getElementById("modalCancelBtn");
+
+// Variable para saber si el modal de GIF se abrió desde el post o el chat
+let gifSource = null;
+
+// ===== Carga el feed de publicaciones al inicio, sin importar el estado de autenticación =====
+const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+onSnapshot(postsQuery, (snapshot) => {
+  feed.innerHTML = "";
+  snapshot.forEach(async docSnap => {
+    const data = docSnap.data();
+    const postId = docSnap.id;
+    const postEl = document.createElement("div");
+    postEl.className = "post";
+
+    const userLiked = currentUser && data.likes.includes(currentUser.uid);
+    const likeButtonClass = userLiked ? "liked" : "";
+
+    // Renderiza la publicación: si es un GIF o un texto
+    const postContent = data.gifURL ?
+      `<img src="${data.gifURL}" alt="GIF publicado">` :
+      `<p>${data.text}</p>`;
+
+    postEl.innerHTML = `
+      <div class="post-header"><img src="${data.photoURL}"><b>${data.userName}</b></div>
+      <div class="post-content">${postContent}</div>
+      <div class="post-actions">
+        <button class="${likeButtonClass} like-btn" data-post-id="${postId}">❤️ ${data.likes.length}</button>
+        <button class="comment-btn" data-post-id="${postId}">💬 Comentar</button>
+      </div>
+      <div class="post-comments" id="comments-${postId}" style="display:none;">
+        <h4>Comentarios</h4>
+        <div id="comment-list-${postId}"></div>
+        <div class="comment-input-area">
+          <input type="text" class="comment-input" id="comment-text-${postId}" placeholder="Escribe un comentario...">
+          <button class="comment-button" data-post-id="${postId}">Enviar</button>
+        </div>
+      </div>`;
+    feed.appendChild(postEl);
+    loadComments(postId);
+  });
+  addEventListenersToPosts();
+});
+
+function addEventListenersToPosts() {
+  document.querySelectorAll('.like-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const postId = this.dataset.postId;
+      likePost(postId);
+      this.classList.add('liked');
+      setTimeout(() => this.classList.remove('liked'), 500);
+    });
+  });
+
+  document.querySelectorAll('.comment-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const postId = this.dataset.postId;
+      const commentsDiv = document.getElementById(`comments-${postId}`);
+      commentsDiv.style.display = commentsDiv.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+
+  document.querySelectorAll('.comment-button').forEach(button => {
+    button.addEventListener('click', function() {
+      const postId = this.dataset.postId;
+      const commentInput = document.getElementById(`comment-text-${postId}`);
+      const commentText = commentInput.value.trim();
+      if (commentText) {
+        addComment(postId, commentText);
+        commentInput.value = '';
+      }
+    });
+  });
+}
+
+async function loadComments(postId) {
+  const commentsListDiv = document.getElementById(`comment-list-${postId}`);
+  const commentsQuery = query(collection(db, "posts", postId, "comments"), orderBy("timestamp", "asc"));
+  onSnapshot(commentsQuery, (snapshot) => {
+    commentsListDiv.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const commentData = docSnap.data();
+      const commentEl = document.createElement("div");
+      commentEl.className = "comment";
+      // Renderiza el comentario: si es un GIF o un texto
+      if (commentData.gifURL) {
+        commentEl.innerHTML = `<b>${commentData.userName}:</b> <img src="${commentData.gifURL}" style="max-width:100%; height:auto;">`;
+      } else {
+        commentEl.innerHTML = `<b>${commentData.userName}:</b> ${commentData.text}`;
+      }
+      commentsListDiv.appendChild(commentEl);
+    });
+  });
+}
+
+async function addComment(postId, text) {
+  if (!currentUser) return alert("Inicia sesión para comentar.");
+  await addDoc(collection(db, "posts", postId, "comments"), {
+    userId: currentUser.uid,
+    userName: currentUser.displayName,
+    text: text,
+    timestamp: serverTimestamp()
+  });
+}
+
+// ===== Navegación y Vistas (AJUSTADO) =====
+homeBtn.onclick = () => showPage('feed');
+
+function showPage(page) {
+  feedContainer.style.display = 'none';
+  profileContainer.style.display = 'none';
+  chatContainer.style.display = 'none';
+
+  if (page === 'feed') {
+    feedContainer.style.display = 'block';
+  } else if (page === 'profile') {
+    profileContainer.style.display = 'flex';
+  } else if (page === 'chat') {
+    feedContainer.style.display = 'block';
+    chatContainer.style.display = 'flex';
+  }
+}
+
+// ===== Auth =====
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    await initUserDoc();
+    renderUser();
+    loadFriends();
+    loadGroups();
+    showPage('feed');
+  } else {
+    currentUser = null;
+    renderUser();
+    friendsList.innerHTML = '';
+    groupsList.innerHTML = '';
+    showPage('feed');
+  }
+});
+
+function renderUser() {
+  if (currentUser) {
+    userArea.innerHTML = `
+      <a class="profile-link" id="profileLink">
+        <img src="${currentUser.photoURL}" class="profile-pic" title="${currentUser.displayName}">
+      </a>
+      <button class="btn" id="logoutBtn">Cerrar sesión</button>`;
+    newPostBox.style.display = "block";
+    document.getElementById("profileLink").onclick = () => showProfilePage();
+    document.getElementById("logoutBtn").onclick = () => signOut(auth);
+  } else {
+    userArea.innerHTML = `<button class="btn" id="loginBtn">Iniciar sesión</button>`;
+    newPostBox.style.display = "none";
+    document.getElementById("loginBtn").onclick = () => signInWithPopup(auth, provider);
+  }
+}
+
+async function initUserDoc() {
+  const userRef = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) {
+    await setDoc(userRef, { displayName: currentUser.displayName, photoURL: currentUser.photoURL, friends: [], groups: [] });
+  }
+}
+
+// ====== Posts y GIFs ======
+postBtn.addEventListener("click", async () => {
+  if (!currentUser) return alert("Inicia sesión para publicar.");
+  const text = postText.value.trim();
+  if (!text) return alert("Debes escribir algo para publicar.");
+  if (text.length > 280) { alert("Máx 280 caracteres"); return; }
+
+  postBtn.disabled = true;
+  postBtn.textContent = "Publicando...";
+
+  try {
+    await addDoc(collection(db, "posts"), {
+      text,
+      userId: currentUser.uid,
+      userName: currentUser.displayName,
+      photoURL: currentUser.photoURL,
+      likes: [],
+      timestamp: serverTimestamp()
+    });
+    postText.value = "";
+  } catch (error) {
+    console.error("Error al crear la publicación:", error);
+    alert("Ocurrió un error al publicar. Intenta de nuevo.");
+  } finally {
+    postBtn.disabled = false;
+    postBtn.textContent = "Publicar";
+  }
+});
+
+// NUEVA FUNCIONALIDAD PARA GIFS
+gifPostBtn.addEventListener("click", () => {
+  if (!currentUser) return alert("Inicia sesión para usar GIFs.");
+  gifSource = 'post';
+  gifModal.style.display = "flex";
+  searchGifs('trending');
+});
+
+gifChatBtn.addEventListener("click", () => {
+  if (!currentUser) return alert("Inicia sesión para usar GIFs.");
+  gifSource = 'chat';
+  gifModal.style.display = "flex";
+  searchGifs('trending');
+});
+
+closeGifModal.addEventListener("click", () => {
+  gifModal.style.display = "none";
+  gifSearchInput.value = '';
+  gifResults.innerHTML = '';
+});
+
+gifSearchInput.addEventListener("input", () => {
+  const query = gifSearchInput.value.trim();
+  if (query.length > 2) {
+    searchGifs(query);
+  } else {
+    searchGifs('trending');
+  }
+});
+
+async function searchGifs(query) {
+  if (!GIPHY_API_KEY || GIPHY_API_KEY === "TU_CLAVE_DE_API_DE_GIPHY_AQUI") {
+    gifResults.innerHTML = "<h4>¡Error! Ingresa tu clave de API de Giphy en el código.</h4>";
+    return;
+  }
+  const url = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${query}&limit=25&offset=0&rating=g&lang=en&bundle=messaging_non_clips`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    displayGifs(data.data);
+  } catch (error) {
+    console.error("Error al buscar GIFs:", error);
+    gifResults.innerHTML = "<h4>Error al cargar GIFs. Intenta de nuevo.</h4>";
+  }
+}
+
+function displayGifs(gifs) {
+  gifResults.innerHTML = "";
+  if (gifs.length === 0) {
+    gifResults.innerHTML = "<h4>No se encontraron GIFs.</h4>";
+    return;
+  }
+  gifs.forEach(gif => {
+    const img = document.createElement("img");
+    img.src = gif.images.fixed_height.url;
+    img.alt = gif.title;
+    img.onclick = () => selectGif(gif.images.original.url);
+    gifResults.appendChild(img);
+  });
+}
+
+async function selectGif(gifURL) {
+  if (gifSource === 'post') {
+    await addDoc(collection(db, "posts"), {
+      text: null,
+      gifURL: gifURL,
+      userId: currentUser.uid,
+      userName: currentUser.displayName,
+      photoURL: currentUser.photoURL,
+      likes: [],
+      timestamp: serverTimestamp()
+    });
+  } else if (gifSource === 'chat') {
+    const messageData = {
+      senderId: currentUser.uid,
+      senderName: currentUser.displayName,
+      text: null,
+      gifURL: gifURL,
+      timestamp: serverTimestamp()
+    };
+    const messagesCol = collection(db, "chats", currentChatId, "messages");
+    await addDoc(messagesCol, messageData);
+  }
+
+  gifModal.style.display = "none";
+  gifSearchInput.value = '';
+  gifResults.innerHTML = '';
+}
+
+window.likePost = async (id) => {
+  if (!currentUser) return alert("Inicia sesión para dar 'Me gusta'");
+  const postRef = doc(db, "posts", id);
+  const postSnap = await getDoc(postRef);
+  const postData = postSnap.data();
+  const likes = postData.likes || [];
+
+  if (likes.includes(currentUser.uid)) {
+    await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
+  } else {
+    await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
+  }
+};
+
+// ====== Amigos ======
+addFriendBtn.onclick = async () => {
+  if (!currentUser) return alert("Inicia sesión primero");
+  const name = searchFriend.value.trim();
+  if (!name) return;
+  if (name === currentUser.displayName) return alert("No puedes agregarte a ti mismo.");
+
+  const usersQuery = query(collection(db, "users"), where("displayName", "==", name));
+  const snapshot = await getDocs(usersQuery);
+  if (snapshot.empty) return alert("Usuario no encontrado.");
+
+  const friendDoc = snapshot.docs[0];
+  const friendId = friendDoc.id;
+  const currentUserRef = doc(db, "users", currentUser.uid);
+  const currentUserSnap = await getDoc(currentUserRef);
+  const friends = currentUserSnap.data().friends || [];
+
+  if (friends.includes(friendId)) {
+    return alert("Este usuario ya es tu amigo.");
+  }
+
+  await updateDoc(currentUserRef, { friends: arrayUnion(friendId) });
+  await updateDoc(doc(db, "users", friendId), { friends: arrayUnion(currentUser.uid) });
+  alert("Amigo añadido correctamente!");
+  searchFriend.value = "";
+  loadFriends();
+};
+
+async function loadFriends() {
+  friendsList.innerHTML = "";
+  if (!currentUser) return;
+  const snap = await getDoc(doc(db, "users", currentUser.uid));
+  if (!snap.exists()) return;
+  const friends = snap.data().friends || [];
+  for (let f of friends) {
+    const fsnap = await getDoc(doc(db, "users", f));
+    if (fsnap.exists()) {
+      const li = document.createElement("li");
+      li.textContent = fsnap.data().displayName;
+      li.onclick = () => startChatWithUser(fsnap.id, fsnap.data().displayName, fsnap.data().photoURL);
+      const img = document.createElement("img");
+      img.src = fsnap.data().photoURL;
+      li.prepend(img);
+      friendsList.appendChild(li);
+    }
+  }
+}
+
+// ====== Grupos y Modal ======
+createGroupBtn.onclick = () => {
+  if (!currentUser) {
+    alert("Inicia sesión para crear un grupo.");
+    return;
+  }
+  createGroupModal.style.display = "flex";
+};
+
+modalCancelBtn.onclick = () => {
+  createGroupModal.style.display = "none";
+  newGroupName.value = "";
+  modalCreateBtn.disabled = false;
+};
+
+modalCreateBtn.onclick = async () => {
+  const name = newGroupName.value.trim();
+  if (!name) {
+    alert("El nombre del grupo es obligatorio.");
+    return;
+  }
+
+  modalCreateBtn.disabled = true;
+
+  const groupQuery = query(collection(db, "groups"), where("name", "==", name));
+  const groupSnap = await getDocs(groupQuery);
+  if (!groupSnap.empty) {
+    alert("Ya existe un grupo con ese nombre.");
+    modalCreateBtn.disabled = false;
+    return;
+  }
+
+  try {
+    const newGroupRef = await addDoc(collection(db, "groups"), { name, members: [currentUser.uid], createdBy: currentUser.uid });
+    await updateDoc(doc(db, "users", currentUser.uid), { groups: arrayUnion(newGroupRef.id) });
+
+    alert("Grupo creado correctamente!");
+    modalCancelBtn.click();
+    loadGroups();
+  } catch (error) {
+    console.error("Error al crear el grupo:", error);
+    alert("Ocurrió un error al crear el grupo. Intenta de nuevo.");
+    modalCreateBtn.disabled = false;
+  }
+};
+
+joinGroupBtn.onclick = async () => {
+  if (!currentUser) return alert("Inicia sesión primero");
+  const name = searchGroup.value.trim();
+  if (!name) return;
+
+  const groupQuery = query(collection(db, "groups"), where("name", "==", name));
+  const groupSnap = await getDocs(groupQuery);
+  if (groupSnap.empty) return alert("Grupo no encontrado.");
+
+  const groupDoc = groupSnap.docs[0];
+  const groupId = groupDoc.id;
+  const groupData = groupDoc.data();
+
+  if (groupData.members.includes(currentUser.uid)) {
+    return alert("Ya eres miembro de este grupo.");
+  }
+
+  await updateDoc(doc(db, "groups", groupId), { members: arrayUnion(currentUser.uid) });
+  await updateDoc(doc(db, "users", currentUser.uid), { groups: arrayUnion(groupId) });
+  alert("Te has unido al grupo correctamente!");
+  searchGroup.value = "";
+  loadGroups();
+};
+
+async function loadGroups() {
+  groupsList.innerHTML = "";
+  if (!currentUser) return;
+  const snap = await getDoc(doc(db, "users", currentUser.uid));
+  if (!snap.exists()) return;
+  const groups = snap.data().groups || [];
+  for (let g of groups) {
+    const gsnap = await getDoc(doc(db, "groups", g));
+    if (gsnap.exists()) {
+      const data = gsnap.data();
+      const li = document.createElement("li");
+      li.textContent = data.name;
+      li.onclick = () => startGroupChat(gsnap.id, data.name, "https://via.placeholder.com/34?text=" + data.name.charAt(0));
+      const img = document.createElement("img");
+      img.src = "https://via.placeholder.com/34?text=" + data.name.charAt(0);
+      li.prepend(img);
+      groupsList.appendChild(li);
+    }
+  }
+}
+
+// ====== Chatting logic ======
+closeChatBtn.onclick = () => {
+  if (unsubscribeFromChat) {
+    unsubscribeFromChat();
+  }
+  chatContainer.style.display = "none";
+  chatMessages.innerHTML = "";
+  currentChatId = null;
+  currentChatType = null;
+};
+
+function startChatWithUser(friendId, friendName, friendPhoto) {
+  if (!currentUser) return alert("Inicia sesión para chatear.");
+  closeChatBtn.click();
+  const chatIds = [currentUser.uid, friendId].sort();
+  currentChatId = chatIds.join('_');
+  currentChatType = 'private';
+
+  chatHeaderName.textContent = friendName;
+  chatHeaderImg.src = friendPhoto;
+  showPage('chat');
+
+  listenForMessages(currentChatId);
+}
+
+function startGroupChat(groupId, groupName, groupPhoto) {
+  if (!currentUser) return alert("Inicia sesión para chatear.");
+  closeChatBtn.click();
+  currentChatId = groupId;
+  currentChatType = 'group';
+
+  chatHeaderName.textContent = groupName;
+  chatHeaderImg.src = groupPhoto;
+  showPage('chat');
+
+  listenForMessages(currentChatId);
+}
+
+sendMessageBtn.onclick = async () => {
+  const text = messageInput.value.trim();
+  if (!text || !currentChatId) return;
+
+  const messageData = {
+    senderId: currentUser.uid,
+    senderName: currentUser.displayName,
+    text: text,
+    timestamp: serverTimestamp()
+  };
+
+  const messagesCol = collection(db, "chats", currentChatId, "messages");
+  await addDoc(messagesCol, messageData);
+  messageInput.value = "";
+};
+
+messageInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    sendMessageBtn.click();
+  }
+});
+
+function listenForMessages(chatId) {
+  const messagesQuery = query(collection(db, "chats", chatId, "messages"), orderBy("timestamp", "asc"));
+  if (unsubscribeFromChat) {
+    unsubscribeFromChat();
+  }
+  unsubscribeFromChat = onSnapshot(messagesQuery, (snapshot) => {
+    chatMessages.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const messageEl = document.createElement("div");
+      messageEl.className = "chat-message " + (data.senderId === currentUser.uid ? "me" : "other");
+
+      // Renderiza el mensaje: si es un GIF o un texto
+      if (data.gifURL) {
+        messageEl.innerHTML = `<img src="${data.gifURL}" style="max-width:100%; height:auto;">`;
+      } else {
+        const messageText = document.createElement("p");
+        messageText.textContent = data.text;
+        messageEl.appendChild(messageText);
+      }
+
+      if (currentChatType === 'group' && data.senderId !== currentUser.uid) {
+        const senderInfo = document.createElement("small");
+        senderInfo.textContent = data.senderName + ": ";
+        messageEl.prepend(senderInfo);
+      }
+      
+      chatMessages.appendChild(messageEl);
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+}
+
+// ====== Perfil ======
+async function showProfilePage() {
+  if (!currentUser) return alert("Inicia sesión para ver tu perfil.");
+  showPage('profile');
+  const userRef = doc(db, "users", currentUser.uid);
+  const userSnap = await getDoc(userRef);
+  const userData = userSnap.data();
+  profileImage.src = userData.photoURL;
+  displayNameInput.value = userData.displayName;
+}
+
+saveProfileBtn.onclick = async () => {
+  const newName = displayNameInput.value.trim();
+  if (!newName) return alert("El nombre no puede estar vacío.");
+
+  saveProfileBtn.disabled = true;
+  saveProfileBtn.textContent = "Guardando...";
+
+  let newPhotoURL = profileImage.src;
+  const photoFile = photoInput.files[0];
+
+  try {
+    if (photoFile) {
+      const storageRef = ref(storage, `profile-photos/${currentUser.uid}`);
+      await uploadBytes(storageRef, photoFile);
+      newPhotoURL = await getDownloadURL(storageRef);
+    }
+
+    const userRef = doc(db, "users", currentUser.uid);
+    await updateDoc(userRef, { displayName: newName, photoURL: newPhotoURL });
+
+    await auth.currentUser.updateProfile({ displayName: newName, photoURL: newPhotoURL });
+
+    alert("Perfil actualizado correctamente.");
+    showPage('feed');
+    renderUser();
+    loadFriends();
+    loadGroups();
+  } catch (error) {
+    console.error("Error al guardar el perfil:", error);
+    alert("Ocurrió un error al guardar el perfil. Intenta de nuevo.");
+  } finally {
+    saveProfileBtn.disabled = false;
+    saveProfileBtn.textContent = "Guardar";
+  }
+};
+</script>
+</body>
+</html>
